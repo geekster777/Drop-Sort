@@ -16,6 +16,37 @@ struct node {
   struct node * next;
 } node;
 
+void drop_sort(struct linked_list * list) {
+  struct linked_list * sorted = malloc(sizeof(linked_list));
+  sorted->length=0;
+
+  while(list->length>0) {
+    struct linked_list * dropped = malloc(sizeof(linked_list));
+    dropped->length=0;
+
+    struct node * current = list->head;
+    while(current->next!=NULL) {
+      //checks if the following number is smaller than the current one
+      if(current->val > current->next->val) {
+        //drops the number that is out of order, and adds it to the dropped
+        struct node * drop = current->next;
+        current->next = drop->next;
+        drop->next=dropped->head;
+        dropped->head=drop;
+        dropped->length++;
+        list->length--;
+      }
+      else {
+        //proceeds if the number is in order
+        current=current->next;
+      }
+    }
+
+    //The numbers inside list are now entirely in order. Now to merge them.
+    return;
+  }
+}
+
 int main() {
   srand(time(NULL));
   
@@ -36,17 +67,20 @@ int main() {
     current->next=last;
     current->val = nums[i];
     last=current;
+    nums[i]=0;
   }
   
   //links the list to the head
   list->head=last;
   
+  drop_sort(list); 
+  
   struct node * current = list->head;
 
   //puts all the values back into the array
   int i=0;
-  while(current && i<TOTAL_NUMS) {
-    nums[i]=current->val;
+  while(current!=NULL && i<TOTAL_NUMS) {
+    nums[i++]=current->val;
     current=current->next;
   }
   

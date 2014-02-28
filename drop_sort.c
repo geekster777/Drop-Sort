@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<time.h>
 
-#define TOTAL_NUMS 10000
+#define TOTAL_NUMS 100
 
 //A linked list head, holding a node and the length of the list
 struct linked_list {
@@ -19,12 +19,14 @@ struct node {
 void drop_sort(struct linked_list * list) {
   int iterations=0;
   struct linked_list * sorted = malloc(sizeof(linked_list));
+  struct linked_list * result = malloc(sizeof(linked_list));
+  struct linked_list * dropped = malloc(sizeof(linked_list));
+  struct node * filler = malloc(sizeof(node));
   sorted->length=0;
   sorted->head=NULL;
 
   while(list->length>0) {
     iterations++;
-    struct linked_list * dropped = malloc(sizeof(linked_list));
     dropped->length=0;
     dropped->head=NULL;
 
@@ -47,9 +49,8 @@ void drop_sort(struct linked_list * list) {
     }
 
     //The numbers inside list are now entirely in order. Now to merge them.
-    struct linked_list * result = malloc(sizeof(linked_list));
     result->length=0;
-    current = malloc(sizeof(node));;
+    current=filler;
     result->head=current;
     current->next=NULL;
     
@@ -81,23 +82,21 @@ void drop_sort(struct linked_list * list) {
         result->length++;
       }
     }
-    current = result->head;
     result->head=result->head->next;
-    free(current);
 
     sorted->head=result->head;
     sorted->length=result->length;
-    free(result);
 
     list->head=dropped->head;
     list->length=dropped->length;
-    free(dropped);
   }
 
   list->head=sorted->head;
   list->length=sorted->length;
   free(sorted);
-  printf("%d\n",iterations);
+  free(result);
+  free(dropped);
+  free(filler);
 }
 
 int main() {
@@ -106,7 +105,7 @@ int main() {
   //randomizes a list of numbers
   int nums[TOTAL_NUMS];
   for(int i=0; i<TOTAL_NUMS; i++)
-    nums[i]=rand()%10000;
+    nums[i]=rand()%1000;
   
   //declares our initial linked list
   struct linked_list * list = malloc(sizeof(linked_list)); 
@@ -125,7 +124,6 @@ int main() {
   
   //links the list to the head
   list->head=last;
-  
   drop_sort(list); 
   
   struct node * current = list->head;
@@ -134,12 +132,15 @@ int main() {
   int i=0;
   while(current!=NULL && i<TOTAL_NUMS) {
     nums[i++]=current->val;
+    struct node * last = current;
     current=current->next;
+    free(last);
   }
   
   //displays the array
-  //for(int i=0; i<TOTAL_NUMS; i++)
-    //printf("%d ",nums[i]);
+  for(int i=0; i<TOTAL_NUMS; i++)
+    printf("%d ",nums[i]);
+  printf("\n");
       
   return 0;
 }

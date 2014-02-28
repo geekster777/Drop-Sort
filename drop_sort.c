@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<time.h>
 
-#define TOTAL_NUMS 100
+#define TOTAL_NUMS 10000
 
 //A linked list head, holding a node and the length of the list
 struct linked_list {
@@ -17,12 +17,16 @@ struct node {
 } node;
 
 void drop_sort(struct linked_list * list) {
+  int iterations=0;
   struct linked_list * sorted = malloc(sizeof(linked_list));
   sorted->length=0;
+  sorted->head=NULL;
 
   while(list->length>0) {
+    iterations++;
     struct linked_list * dropped = malloc(sizeof(linked_list));
     dropped->length=0;
+    dropped->head=NULL;
 
     struct node * current = list->head;
     while(current->next!=NULL) {
@@ -43,8 +47,57 @@ void drop_sort(struct linked_list * list) {
     }
 
     //The numbers inside list are now entirely in order. Now to merge them.
-    return;
+    struct linked_list * result = malloc(sizeof(linked_list));
+    result->length=0;
+    current = malloc(sizeof(node));;
+    result->head=current;
+    current->next=NULL;
+    
+    while(list->length>0 || sorted->length>0) {
+      if(list->length==0) {
+        current->next=sorted->head;
+        result->length+=sorted->length;
+        sorted->length=0;
+      }
+      else if(sorted->length==0) {
+        current->next=list->head;
+        result->length+=list->length;
+        list->length=0;
+      }
+      else if(list->head->val<sorted->head->val) {
+        struct node * store_node = list->head;
+        list->head=list->head->next;
+        list->length--;
+        current->next=store_node;
+        current=store_node;
+        result->length++;
+      }
+      else {
+        struct node * store_node = sorted->head;
+        sorted->head=sorted->head->next;
+        sorted->length--;
+        current->next=store_node;
+        current=store_node;
+        result->length++;
+      }
+    }
+    current = result->head;
+    result->head=result->head->next;
+    free(current);
+
+    sorted->head=result->head;
+    sorted->length=result->length;
+    free(result);
+
+    list->head=dropped->head;
+    list->length=dropped->length;
+    free(dropped);
   }
+
+  list->head=sorted->head;
+  list->length=sorted->length;
+  free(sorted);
+  printf("%d\n",iterations);
 }
 
 int main() {
@@ -53,7 +106,7 @@ int main() {
   //randomizes a list of numbers
   int nums[TOTAL_NUMS];
   for(int i=0; i<TOTAL_NUMS; i++)
-    nums[i]=rand()%100;
+    nums[i]=rand()%10000;
   
   //declares our initial linked list
   struct linked_list * list = malloc(sizeof(linked_list)); 
@@ -85,10 +138,8 @@ int main() {
   }
   
   //displays the array
-  for(int i=0; i<TOTAL_NUMS; i++)
-    printf("%d ",nums[i]);
-  
-  printf("\n");
-    
+  //for(int i=0; i<TOTAL_NUMS; i++)
+    //printf("%d ",nums[i]);
+      
   return 0;
 }

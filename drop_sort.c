@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<time.h>
 
-#define TOTAL_NUMS 100
+#define TOTAL_NUMS 10000
 
 //A linked list head, holding a node and the length of the list
 struct linked_list {
@@ -16,12 +16,147 @@ struct node {
   struct node * next;
 } node;
 
+struct heap_list {
+  struct heap_node * head;
+  int length;
+} heap_list;
+
+struct heap_node {
+  struct node * val;
+  struct heap_node * left;
+  struct heap_node * right;
+  struct heap_node * parent;
+} heap_node;
+
+void heap_add_node(struct heap_list * list, struct node * val) {
+  list->length++;
+  int pos=list->length;
+  struct heap_node * current = list->head;
+  struct heap_node * new_node = malloc(sizeof(heap_node));
+  
+  new_node->left=NULL;
+  new_node->right=NULL;
+  new_node->val=val;
+  
+  //creates the initial element if the heap is empty
+  if(pos==1) {
+    new_node->parent=NULL;
+    list->head=new_node;
+    return;
+  }
+  
+  //finds the current position in the heap to add the new item. 
+  while(pos>3) {
+    if(pos%2)
+      current = current->right;
+    else
+      current = current->left;
+    pos=pos/2;
+  }
+  if(pos==2) 
+    current->left = new_node;
+  else
+    current->right = new_node;
+  new_node->parent = current;
+
+  //bubbles the node up the heap so that it is in order;
+  while(new_node->parent!=NULL && 
+    new_node->parent->val->val > new_node->val->val) {
+    struct node * store_val = new_node->val;
+    new_node->val=new_node->parent->val;
+    new_node=new_node->parent;
+    new_node->val=store_val;
+  }
+}
+
+struct node * pop_heap(struct heap_list * heap) {
+  struct heap_node * current = heap->head;
+  struct node * returner = current->val;
+  current->val=current->val->next;
+  
+  //bubble the head to the bottom of the list, and remove it.
+  if(current->val==NULL) {
+    
+    //bubble the current position ot the bottom of the heap
+    while(current->left!=NULL || current->right!=NULL) {
+      if(current->left == NULL) {
+        current->val = current->right->val;
+        current=current->right;
+        current->val = NULL;
+      }
+      else if(current->right == NULL) {
+        current->val = current->left->val;
+        current=current->left;
+        current->val = NULL;
+      }
+      else if(current->left->val->val < current->right->val->val) {
+        current->val = current->left->val;
+        current=current->left;
+        current->val = NULL;
+      }
+      else {
+        current->val = current->right->val;
+        current=current->right;
+        current->val = NULL;
+      }
+    }
+
+    //removes the node from the heap
+    if(current->parent != NULL && current == current->parent->left)
+      current->parent->left=NULL;
+    else if(current->parent != NULL)
+      current->parent->right=NULL;
+    else
+      heap->length=1;
+    free(current);
+    
+    heap->length--;
+  }
+  
+  //bubbles up any nodes with smaller values than the head.
+  else {
+    while(current->left!=NULL || current->right!=NULL) {
+      struct node * store_val = current->val;
+      //checks if the lefthand node is the smallest value
+      if(current->left == NULL) {
+        current->val = current->right->val;
+        current=current->right;
+        current->val = store_val;
+      }
+      else if(current->right == NULL) {
+        current->val = current->left->val;
+        current=current->left;
+        current->val = store_val;
+      }
+      else if(current->left->val->val < store_val->val &&
+        current->left->val->val < current->right->val->val) {
+
+        current->val = current->left->val;
+        current = current->left;
+        current->val = store_val;
+      }
+      else if(current->right->val->val < store_val->val) {
+        current->val = current->right->val;
+        current = current->right;
+        current->val = store_val;
+      }
+      else
+        return returner;
+    }
+
+  }
+
+  return returner;
+}
+
 void drop_sort(struct linked_list * list) {
   int iterations=0;
   struct linked_list * sorted = malloc(sizeof(linked_list));
   struct linked_list * result = malloc(sizeof(linked_list));
   struct linked_list * dropped = malloc(sizeof(linked_list));
-  struct node * filler = malloc(sizeof(node));
+  struct heap_list * heap = malloc(sizeof(heap_list));
+  heap->length=0;
+  heap->head=NULL;
   sorted->length=0;
   sorted->head=NULL;
 
@@ -47,56 +182,32 @@ void drop_sort(struct linked_list * list) {
         current=current->next;
       }
     }
-
-    //The numbers inside list are now entirely in order. Now to merge them.
-    result->length=0;
-    current=filler;
-    result->head=current;
-    current->next=NULL;
     
-    while(list->length>0 || sorted->length>0) {
-      if(list->length==0) {
-        current->next=sorted->head;
-        result->length+=sorted->length;
-        sorted->length=0;
-      }
-      else if(sorted->length==0) {
-        current->next=list->head;
-        result->length+=list->length;
-        list->length=0;
-      }
-      else if(list->head->val<sorted->head->val) {
-        struct node * store_node = list->head;
-        list->head=list->head->next;
-        list->length--;
-        current->next=store_node;
-        current=store_node;
-        result->length++;
-      }
-      else {
-        struct node * store_node = sorted->head;
-        sorted->head=sorted->head->next;
-        sorted->length--;
-        current->next=store_node;
-        current=store_node;
-        result->length++;
-      }
-    }
-    result->head=result->head->next;
-
-    sorted->head=result->head;
-    sorted->length=result->length;
-
+    printf("%d - %d\n",list->length,heap->length);    
+    heap_add_node(heap,list->head);
     list->head=dropped->head;
     list->length=dropped->length;
   }
-
+  
+  struct node filler;
+  node.val=NULL;
+  node.next=NULL;
+  struct node * current = &node;
+  sorted->head=current;
+  sorted->length=0;
+  printf("\n");
+  while(heap->length>0) {
+    current->next=pop_heap(heap);
+    current=current->next;
+    sorted->length++;
+  }
+  sorted->head=sorted->head->next;
+  
   list->head=sorted->head;
   list->length=sorted->length;
   free(sorted);
   free(result);
   free(dropped);
-  free(filler);
 }
 
 int main() {

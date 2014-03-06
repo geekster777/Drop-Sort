@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<time.h>
 
-#define TOTAL_NUMS 10000
+#define TOTAL_NUMS 100
 
 //A linked list head, holding a node and the length of the list
 struct linked_list {
@@ -183,7 +183,6 @@ void drop_sort(struct linked_list * list) {
       }
     }
     
-    printf("%d - %d\n",list->length,heap->length);    
     heap_add_node(heap,list->head);
     list->head=dropped->head;
     list->length=dropped->length;

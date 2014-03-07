@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<time.h>
 
-#define TOTAL_NUMS 100
+#define TOTAL_NUMS 50
 
 //A linked list head, holding a node and the length of the list
 typedef struct {
@@ -54,13 +54,13 @@ heap_node * switch_nodes(heap_node * n1, heap_node * n2) {
  *
  * val - the node that you will be inserting into the heap
  */
-void heap_add_node(heap_list * list, node * val) {
+void heap_add_node(heap_list * heap, node * val) {
   //makes the node larger
-  list->length++;
-
+  heap->length++;
+  
   //uses the length as an identifier of where to put the node
-  int pos=list->length;
-  heap_node * current = list->head;
+  int pos=heap->length;
+  heap_node * current = heap->head;
 
   //initializes the node
   heap_node * new_node = malloc(sizeof(heap_node)); 
@@ -71,7 +71,7 @@ void heap_add_node(heap_list * list, node * val) {
   //creates the initial element if the heap is empty
   if(pos==1) {
     new_node->parent=NULL;
-    list->head=new_node;
+    heap->head=new_node;
     return;
   }
   
@@ -84,14 +84,15 @@ void heap_add_node(heap_list * list, node * val) {
       current = current->left;
     pos=pos/2;
   }
-
+  
   //places the node.
   if(pos==2) 
     current->left = new_node;
   else
     current->right = new_node;
-  new_node->parent = current;
 
+  new_node->parent = current;
+ 
   //bubbles the node up the heap so that it is in order;
   while(new_node->parent!=NULL && 
     new_node->parent->val->val > new_node->val->val) {
@@ -156,10 +157,16 @@ node * pop_heap(heap_list * heap) {
 
       //checks if the lefthand node is the smallest value
       if(current->left == NULL) {
-        current = switch_nodes(current, current->right);
+        if(current->right->val->val<store_val->val)
+          current = switch_nodes(current, current->right);
+        else
+          break;
       }
       else if(current->right == NULL) {
-        current = switch_nodes(current, current->left);
+        if(current->left->val->val<store_val->val)
+          current = switch_nodes(current, current->left);
+        else
+          break;
       }
       else if(current->left->val->val < store_val->val &&
         current->left->val->val < current->right->val->val) {
@@ -169,10 +176,12 @@ node * pop_heap(heap_list * heap) {
       else if(current->right->val->val < store_val->val) {
         current = switch_nodes(current, current->right);
       }
-      else
+      else {
         return returner;
+      }
     }
   }
+  
 
   return returner;
 }
@@ -232,13 +241,7 @@ void drop_sort(linked_list * list) {
     
     //places that sorted linked list into the heap
     heap_add_node(heap,list->head);
-    printf("%d - ",list->length);
-    node * cur = list->head;
-    while(cur!=NULL) {
-      printf("%d ",cur->val);
-      cur=cur->next;
-    }
-    printf("\n");
+    
     //puts the dropped items back into the list
     list->head=dropped->head;
     list->length=dropped->length;
@@ -261,7 +264,6 @@ void drop_sort(linked_list * list) {
   
   //frees up the list we created
   free(dropped);
-  printf("%d\n",iterations);
 }
 
 int main() {
@@ -304,8 +306,6 @@ int main() {
   
   //displays the array
   for(int i=0; i<TOTAL_NUMS; i++) {
-    if(i>0 && nums[i]<nums[i-1])
-      printf("* ");
     printf("%d ",nums[i]);
   }
   printf("\n");
